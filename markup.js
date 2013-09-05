@@ -1,0 +1,60 @@
+/**
+ * insert, delete or replace markup
+ */
+
+module.exports = {
+    markup: markup
+}
+
+var cheerio = require('cheerio')
+var url = require('url')
+var fs = require('fs')
+
+var operations = [
+    {
+        href: 'http://example.com/',
+        insert: {
+            markupFile: '/path/to/chunk-to-insert.html',
+            after: '#main h1',
+        }
+    },
+]
+
+function markup(req, res) {
+    var relevantOps = operations.filter(function (op) {
+        return url.parse(req.url).href === op.href
+    })
+    if (relevantOps.length === 0) { return }
+
+    var modifiedHTML = ''
+    var res_end = res.end
+    var res_write = res.write
+    res.write = function (d) { modifiedHTML += d }
+    res.end = function (d) {
+        if (d) { modifiedHTML += d }
+        res_write.call(res, doOps(relevantOps, modifiedHTML))
+        res_end.call(res, '')
+    }
+}
+
+function doOps(relevantOps, html) {
+    var $ = cheerio.load(html)
+    relevantOps.forEach(function (opt) {
+        if (opt.insert) {
+            var markup = opt.insert.markup ? opt.insert.markup : fs.readFileSync(opt.insert.markupFile)
+            if (opt.insert.after) {
+                $(opt.insert.after).after(markup)
+            } else if (opt.insert.before) {
+                $(opt.insert.before).before(markup)
+            } else {
+                throw new Error('opt.insert is missing one of "after" options')
+            }
+        } else if (opt.remove) {
+            $(opt.remove).remove()
+        } else {
+            throw new Error('operation not found!')
+        }
+    })
+    return $.html()
+}
+
