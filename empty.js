@@ -1,11 +1,9 @@
-/* jshint asi:true */
-
 /**
  * Empty module: When encountering a certain file, return an empty response!
  */
 
 module.exports = {
-    empty: empty
+    proxy: empty
 }
 
 var url = require('url')

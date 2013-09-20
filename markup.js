@@ -3,7 +3,7 @@
  */
 
 module.exports = {
-    markup: markup
+    proxy: markup
 }
 
 var cheerio = require('cheerio')
@@ -41,11 +41,10 @@ function doOps(relevantOps, html) {
     var $ = cheerio.load(html)
     relevantOps.forEach(function (opt) {
         if (opt.insert) {
-            var markup = opt.insert.markup ? opt.insert.markup : fs.readFileSync(opt.insert.markupFile)
             if (opt.insert.after) {
-                $(opt.insert.after).after(markup)
+                $(opt.insert.after).after(getMarkup(opt.insert))
             } else if (opt.insert.before) {
-                $(opt.insert.before).before(markup)
+                $(opt.insert.before).before(getMarkup(opt.insert))
             } else {
                 throw new Error('opt.insert is missing one of "after" options')
             }
@@ -56,5 +55,15 @@ function doOps(relevantOps, html) {
         }
     })
     return $.html()
+}
+
+function getMarkup(opt) {
+    if (opt.markup) {
+        return opt.markup
+    } else if (opt.markupFile) {
+        return fs.readFileSync(opt.markupFile)
+    } else {
+        throw 'define a `markup` option'
+    }
 }
 

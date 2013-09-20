@@ -2,10 +2,15 @@
   "name": "magicProxy",
   "version": "0.0.0",
   "description": "Http proxy for clientside web development",
+  "repository": {
+      "type": "git",
+      "url": "https://github.com/fabiosantoscode/magicProxy.git"
+  },
   "main": "index.js",
   "dependencies": {
     "http-proxy": "*",
-    "cheerio": "0.12.1"
+    "cheerio": "0.12.1",
+    "optimist": "0.6.x"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

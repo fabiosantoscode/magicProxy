@@ -3,37 +3,38 @@
  */
 
 module.exports = {
-    replace: replace
+    proxy: replace
 }
 
-var url = require('url'),
-    fs = require('fs')
+var fs = require('fs'),
+    url = require('url')
 
-var replacements = [
-    {
-        replace: 'http://what.to/replace',
-        withFile: '/path/to/replacement.js',
-        contentType: 'content/type',
-    },
-]
+/**
+ * // in ~/.magicproxyrc:
+ * replace: [
+ *     {
+ *         replace: 'http://what.to/replace',  // You can also use replaceRegExp
+ *         withFile: '/path/to/replacement.js',  // You can also use with, a string containing the file contents.
+ *         contentType: 'content/type',  // dafaults to text/plain
+ *     },
+ * ]
+ */
 
-function replace(req, res) {
-    var parsedUrl = url.parse(req.url)
-    var rep
-    for (var i = 0, len = replacements.length; i < len; i++) {
-        rep = replacements[i];
-        if (match(rep, url)) {
+function replace(req, res, plugin) {
+    var replacements = plugin.config.replace || [];
+    return replacements.some(function (rep) {
+        if (match(rep, url.parse(req.url))) {
             respond(res, rep)
             return true
         }
-    }
+    })
 }
 
 function match(rep, url) {
     if (rep.replace) {
         return url.href === rep.replace
     } else if (rep.replaceRegExp) {
-        return url.href.test(rep.replaceRegExp);
+        return url.href.test(new RegExp(rep.replaceRegExp));
     }
 }
 

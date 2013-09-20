@@ -7,7 +7,6 @@
  * Used for development of front-end javascript, when all the website's
  * environment can't be reproduced locally easily.
  *
- * Shit's currently configurated hardcoded-ly!
  */
 
 var http = require('http'),
@@ -17,21 +16,57 @@ var http = require('http'),
     path = require('path'),
     fs = require('fs')
 
-// Local deps
-var replace = require('./replace.js'),
-    empty = require('./empty.js'),
-    markup = require('./markup.js')
+var homedir = process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE
+
+var argv = require('optimist')
+    .options('c', {
+        alias: 'config',
+        default: path.join(homedir, '.magicproxyrc'),
+    })
+    .options('p', {
+        alias: 'plugin',
+        default: [],
+    })
+    .argv;
+
+var config = {};
+updateConfig();
+
+function updateConfig() {
+    if (argv.config) {
+        config = JSON.parse(fs.readFileSync(argv.config), {encoding: 'utf-8'});
+    }
+}
+
+var plugins = [
+    './replace',
+    './empty',
+    './markup',
+]
+
+var pluginsInArgv = typeof argv.plugin === 'string' ? [argv.plugin] : argv.plugin
+
+plugins = plugins
+    .concat(pluginsInArgv || [])
+    .concat(config.plugins || [])
 
 var proxy = new httpProxy.RoutingProxy()
 
+plugins = plugins.map(require)
+
+/* Listen to HTTP requests */
 http.createServer(function (req, res) {
-    if (replace.replace(req, res)) {
-        return;  // We are done here. replace.replace responds.
-    } else if (empty.empty(req, res)) {
-        return;
-    } else if (markup.markup(req, res)) {
-        return
-    } else {
+    updateConfig();
+
+    /* Check if any plugin wishes to intercept and respond to the request */
+    var didRespond = plugins.some(function (plugin) {
+        return plugin.proxy(req, res, {
+            config: config
+        })
+    })
+
+    /* Else, proxy the request over to the server */
+    if (!didRespond) {
         var parsed = url.parse(req.url)
         proxy.proxyRequest(req, res, {
             host: parsed.hostname,
