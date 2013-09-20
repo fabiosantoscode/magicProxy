@@ -8,12 +8,14 @@ module.exports = {
 
 function log(req, res) {
     var timeout = null
-    res.on('end', function () {
-        console.log('%s: %s to %s', res.statusCode, req.verb, req.url)
+    var _end = res.end
+    res.end = function () {
+        console.log('%s\t%s\t(%s)', req.method, res.statusCode, req.url)
         clearTimeout(timeout)
-    })
+        _end.apply(this, [].slice.call(arguments))
+    }
     timeout = setTimeout(function () {
-        console.log('TIMEOUT: giving up waiting for response of %s to %s', req.verb, req.url)
+        console.log('TIMEOUT\t%s\t%s\t(given up waiting)', req.method, req.url)
     }, 3000)
 }
 
