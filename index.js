@@ -23,9 +23,12 @@ var argv = require('optimist')
         alias: 'config',
         default: path.join(homedir, '.magicproxyrc'),
     })
-    .options('p', {
+    .options({
         alias: 'plugin',
         default: [],
+    })
+    .options('p', {
+        alias: 'port',
     })
     .argv;
 
@@ -39,9 +42,10 @@ function updateConfig() {
 }
 
 var plugins = [
-    './replace',
-    './empty',
-    './markup',
+    './replace.js',
+    './fakeDir.js',
+    './empty.js',
+    './markup.js',
 ]
 
 var pluginsInArgv = typeof argv.plugin === 'string' ? [argv.plugin] : argv.plugin
@@ -73,5 +77,5 @@ http.createServer(function (req, res) {
             port: parsed.port || 80,
         })
     }
-}).listen(7777)
+}).listen(argv.port || config.port || 8080)
 
