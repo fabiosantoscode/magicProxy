@@ -14,7 +14,16 @@ var http = require('http'),
     httpProxy = require('http-proxy'),
     url = require('url'),
     path = require('path'),
-    fs = require('fs')
+    fs = require('fs'),
+    underscore = require('underscore')
+
+var _ = underscore;
+
+_.mixin({
+    concat: function (arr, other) {
+        return _([].concat.call(arr, other || []))
+    }
+})
 
 var homedir = process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE
 
@@ -32,31 +41,39 @@ var argv = require('optimist')
     })
     .argv;
 
-var config = {};
-updateConfig();
-
-function updateConfig() {
-    if (argv.config) {
-        config = JSON.parse(fs.readFileSync(argv.config), {encoding: 'utf-8'});
-    }
-}
-
-var plugins = [
+var defaultPlugins = [
     './replace.js',
     './fakeDir.js',
     './empty.js',
     './markup.js',
 ]
 
+var plugins;
+
 var pluginsInArgv = typeof argv.plugin === 'string' ? [argv.plugin] : argv.plugin
 
-plugins = plugins
-    .concat(pluginsInArgv || [])
-    .concat(config.plugins || [])
+var config = {};
+
+updateConfig();
+
+function updateConfig() {
+    // TODO: set up watches and check file changed. Return early if flag not checked.
+
+    try {
+        config = JSON.parse(fs.readFileSync(argv.config), {encoding: 'utf-8'});
+    } catch(e) {
+        console.log('Warning: Configuration file (%s) not found', argv.config)
+    }
+
+    plugins = _([])
+        .concat(defaultPlugins)
+        .concat(pluginsInArgv || [])
+        .concat(config.plugins || [])
+        .uniq()
+        .map(require)
+}
 
 var proxy = new httpProxy.RoutingProxy()
-
-plugins = plugins.map(require)
 
 /* Listen to HTTP requests */
 http.createServer(function (req, res) {
