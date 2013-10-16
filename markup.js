@@ -10,6 +10,9 @@ var cheerio = require('cheerio')
 var url = require('url')
 var fs = require('fs')
 
+// TODO read configs instead
+// TODO hrefRegexp option
+
 var operations = [
     {
         href: 'http://example.com/',

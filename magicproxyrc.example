@@ -1,0 +1,39 @@
+{
+    "plugins": [
+        "./log.js",
+        "./replace.js",
+        "./fakeDir.js"
+    ],
+    "replace": [
+        {
+            "replace": "http://www.example.com/js/main.js",
+            "with": "alert('Hey it seems like the proxy works!');",
+            "contentType": "text/javascript"
+        },
+        {
+            "replaceRegExp": "^http://www.example.com/css/(.*?).min.css$",
+            "withFile": "/path/to/unminified/$1.css",
+            "contentType": "text/css"
+        }
+    ],
+    "fakeDir": [
+        {
+            "url": "http://www.example.com/static/files/",
+            "dir": "/path/to/my/version/of/those/files/",
+            "contentType": "text/javascript"
+        }
+    ],
+    "markup": [
+        {
+            "href": "http://example.com/",
+            "insert": {
+                "markupFile": "/path/to/awesome/header/im/working/on.html"
+                "after": "#main header"
+            }
+        },
+        {
+            "href": "http://example.com/",
+            "remove": "#main header:first-child"
+        }
+    ]
+}
