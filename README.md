@@ -4,17 +4,37 @@
 A proxy for front-end web development. It changes responses from remote websites.
 
 
-Using this, you can forget about having your local HTTP server or using `rsync`/`wget` to sync your computer with the remote site, broken URLs and ajax APIs, cross-domain problems, and just access the website you are changing
+Using this, you can forget about having your local HTTP server or using `rsync`/`wget` to sync your computer with the remote site, broken URLs and ajax APIs, cross-domain problems, and just access the website you are changing and activate the `replace.js` or `fakeDir.js` plugins.
+
+You can also access websites only accessible to your computer (E.G. in your local server and/or with a hostname only you have in `/etc/hosts`) from the outside, by accessing through your proxy.
 
 
-Currently configuration is pretty hardcoded, but I hope to have some time to create a proper configuration system + plugin architecture.
+## Installation
+
+1. Clone this repository
+
+        git clone git@github.com:fabiosantoscode/magicProxy.git
+
+2. Npm install the dependencies
+
+        npm install
+      
+3. Run the proxy
+
+        node index.js
+
+4. Access your system's network configuration, and set up your proxy to `localhost`, port `8080`
 
 
 ## Included plug-ins.
 
- - replace: Intercepts requests for key files and responds with local files instead
- - markup: Uses [cheerio](https://github.com/MatthewMueller/cheerio) for changing HTML markup. You can insert or remove chunks.
- - empty: Empty some HTTP responses. Useful for annoying tracking scripts.
+ - replace.js: Intercepts requests for key files and responds with local files instead.
+ - fakeDir.js: Pretend a local folder is actually on the server.
+ - markup.js: Uses [cheerio](https://github.com/MatthewMueller/cheerio) for changing HTML markup. You can insert or remove chunks.
+ - empty.js: Empty some HTTP responses. Useful for annoying tracking scripts.
+ - log.js: Log HTTP verbs, status codes and URLS for every response.
+
+Configuration instructions are written in the plugins' `.js` files.
 
 
 ## Usage examples:
