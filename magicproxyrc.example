@@ -1,0 +1,36 @@
+{
+    "plugins": [
+        "./log.js",
+        "./replace.js",
+        "./fakeDir.js"
+    ],
+    "markup": [
+        {
+            "href": "http://example.com/",
+            "replace": {
+                "what": "h1,h2,h3,h4,h5",
+                "markup": "<h1>Hello from magicProxy!</h1>"
+            }
+        }
+    ],
+    "fakeDir": [
+        {
+            "url": "http://www.example.com/static/files/",
+            "dir": "/path/to/my/version/of/those/files/",
+            "contentType": "text/javascript"
+        }
+    ],
+    "replace": [
+        {
+            "replace": "http://www.example.com/js/main.js",
+            "with": "alert('Hey it seems like the proxy works!');",
+            "contentType": "text/javascript"
+        },
+        {
+            "replaceRegExp": "^http://www.example.com/css/(.*?).min.css$",
+            "withFile": "/path/to/unminified/$1.css",
+            "contentType": "text/css"
+        }
+    ]
+}
+

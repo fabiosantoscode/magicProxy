@@ -10,7 +10,8 @@
   "dependencies": {
     "http-proxy": "*",
     "cheerio": "0.12.1",
-    "optimist": "0.6.x"
+    "optimist": "0.6.x",
+    "underscore": "1.5.x"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

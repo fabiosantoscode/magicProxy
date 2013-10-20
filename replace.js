@@ -23,23 +23,44 @@ var fs = require('fs'),
 function replace(req, res, plugin) {
     var replacements = plugin.config.replace || [];
     return replacements.some(function (rep) {
-        if (match(rep, url.parse(req.url))) {
-            respond(res, rep)
-            return true
-        }
+        return respond(url.parse(req.url), res, rep);
     })
 }
 
-function match(rep, url) {
+function respond(url, res, rep) {
+    var matches
+    var re
     if (rep.replace) {
-        return url.href === rep.replace
+        matches = url.href === rep.replace
     } else if (rep.replaceRegExp) {
-        return url.href.test(new RegExp(rep.replaceRegExp));
+        re = new RegExp(rep.replaceRegExp)
+        matches = re.exec(url.href);
     }
-}
+    if (!matches) { return; }
 
-function respond(res, rep) {
+    if (re && rep.withFile) {
+        // replacements
+        rep.withFile = rep.withFile.replace(/\$(\d)/g, function (_, number) {
+            return matches[number];
+        });
+    }
+
     res.setHeader('Content-type', rep.contentType || 'text/plain')
-    res.end(rep.with || fs.readFileSync(rep.withFile))
+    var responseStr = rep.with
+    if (!responseStr) {
+        try {
+            responseStr = fs.readFileSync(rep.withFile)
+        } catch(e) {
+            res.statusCode = 404
+            responseStr = [
+                'Error loading file', rep.withFile, e].join(' ');
+        }
+    }
+    if (!responseStr) {
+        responseStr = '/* magicProxy: "replace" directive missing "with" or "withFile" options */'
+    }
+    res.end(responseStr)
+
+    return true;  // responded
 }
 
