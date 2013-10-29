@@ -1,5 +1,5 @@
 {
-  "name": "magicProxy",
+  "name": "magicproxy",
   "version": "0.0.0",
   "description": "Http proxy for clientside web development",
   "repository": {
