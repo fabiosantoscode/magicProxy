@@ -52,7 +52,6 @@ function putBreakers(html) {
     Object.keys(breakers).forEach(function (selector) {
         var attrName = breakers[selector]  // see dat object above
         var resourceUrl = $(selector).attr(attrName)
-        console.log(resourceUrl)
         if (!resourceUrl) { return; }
         resourceUrl = url.parse(resourceUrl, true)
         
