@@ -12,6 +12,10 @@ var cheerio = require('cheerio')
 /*       :(             */
 var url = require('url')
 
+/* small breakers are a concern on IE where the URL length is limited. */
+var breakerParam = 'mp_brkr'
+var getBreakerVal = function () { return Math.random().toString(16).substr(2, 8) }
+
 function cacheBreaker(req, res, plugin) {
     /* these lines need to be in the plugin system:    vvvvv */
     var operations = plugin.config.cacheBreaker || [];
@@ -41,12 +45,9 @@ var breakers = {
     img: 'src',
 }
 
-/* small breakers are a concern on IE where the URL length is limited. */
-var breakerParam = 'mp_brkr'
-var breakerVal = Math.random().toString(16).substr(2, 8)
-
 function putBreakers(html) {
     var $ = cheerio.load(html)
+    var breakerVal = getBreakerVal()
 
     Object.keys(breakers).forEach(function (selector) {
         var attrName = breakers[selector]  // see dat object above
