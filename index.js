@@ -46,6 +46,7 @@ var defaultPlugins = [
     './fakeDir.js',
     './empty.js',
     './markup.js',
+    './cacheBreaker.js',
 ]
 
 var plugins;
