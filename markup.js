@@ -27,11 +27,30 @@ function markup(req, res, plugin) {
     var modifiedHTML = ''
     var res_end = res.end
     var res_write = res.write
+    var res_writeHead = res.writeHead
+    var writeHeadArgs;
+    var headers = {};
+    res.writeHead = function (x, heads1, heads2/*...*/) {
+        writeHeadArgs = [].slice.call(arguments)
+        headers =
+            (heads1 && typeof heads1 === 'object') ? heads1 :
+            (heads2 && typeof heads1 === 'object') ? heads2 : null;
+        if (headers) {
+            // going to override these
+            delete headers['Content-Type'];
+            delete headers['Content-Length']
+        }
+    }
     res.write = function (d) { modifiedHTML += d || '' }
     res.end = function (d) {
-        modifiedHTML += d || ''
-        res_write.call(res, doOps(relevantOps, modifiedHTML))
-        res_end.call(res, '')
+        modifiedHTML = doOps(relevantOps, modifiedHTML + (d || ''));
+        res.setHeader('Content-Type', 'text/html;charset=utf-8');
+        res.setHeader('Content-Length', Buffer.byteLength(modifiedHTML, 'utf-8'));
+        if (writeHeadArgs) {
+            res_writeHead.call(res, writeHeadArgs);
+        }
+        res_write.call(res, modifiedHTML, 'utf-8')
+        res_end.call(res)
     }
 }
 
@@ -49,7 +68,9 @@ function doOps(relevantOps, html) {
         } else if (opt.remove) {
             $(opt.remove).remove()
         } else if (opt.replace) {
-            $(opt.replace.what).html(getMarkup(opt.replace))
+            var $what = $(opt.replace.what);
+            $what.after(getMarkup(opt.replace));
+            $what.remove();
         } else {
             throw new Error('operation not found!')
         }
