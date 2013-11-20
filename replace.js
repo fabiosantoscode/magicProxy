@@ -7,7 +7,8 @@ module.exports = {
 }
 
 var fs = require('fs'),
-    url = require('url')
+    url = require('url'),
+    mime = require('mime')
 
 /**
  * // in ~/.magicproxyrc:
@@ -30,12 +31,14 @@ function replace(req, res, plugin) {
 function respond(url, res, rep) {
     var matches
     var re
+
     if (rep.replace) {
         matches = url.href === rep.replace
     } else if (rep.replaceRegExp) {
         re = new RegExp(rep.replaceRegExp)
         matches = re.exec(url.href);
     }
+
     if (!matches) { return; }
 
     if (re && rep.withFile) {
@@ -45,9 +48,12 @@ function respond(url, res, rep) {
         });
     }
 
-    res.setHeader('Content-type', rep.contentType || 'text/plain')
-    var responseStr = rep.with
-    if (!responseStr) {
+    if (!rep.contentType && rep.withFile) {
+        rep.contentType = mime.lookup(rep.withFile);
+    }
+
+    var responseStr
+    if (!rep.with) {
         try {
             responseStr = fs.readFileSync(rep.withFile)
         } catch(e) {
@@ -55,10 +61,15 @@ function respond(url, res, rep) {
             responseStr = [
                 'Error loading file', rep.withFile, e].join(' ');
         }
+    } else {
+        responseStr = rep.with
     }
+
     if (!responseStr) {
         responseStr = '/* magicProxy: "replace" directive missing "with" or "withFile" options */'
     }
+
+    res.setHeader('Content-type', rep.contentType || 'text/plain')
     res.end(responseStr)
 
     return true;  // responded

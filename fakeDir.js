@@ -8,7 +8,8 @@ module.exports = {
 
 var fs = require('fs'),
     url = require('url'),
-    path = require('path')
+    path = require('path'),
+    mime = require('mime')
 
 /**
  * // in ~/.magicproxyrc:
@@ -29,8 +30,12 @@ function fakeDir(req, res, plugin) {
         })
         .some(function (fakeDir) {
             var relativePath = path.relative(fakeDir.url, req.url)
-            res.setHeader('Content-Type', fakeDir.contentType || 'text/plain')
-            fs.readFile(path.join(fakeDir.dir, relativePath), function (err, data) {
+            var absPath = path.join(fakeDir.dir, relativePath)
+            if (!fakeDir.contentType) {
+                fakeDir.contentType = mime.lookup(absPath) || 'text/plain';
+            }
+            res.setHeader('Content-Type', fakeDir.contentType)
+            fs.readFile(absPath, function (err, data) {
                 if (err) throw err
                 res.end(data)
             })
