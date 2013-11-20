@@ -11,6 +11,7 @@
 
 var http = require('http'),
     https = require('https'),
+    watch = require('node-watch'),
     httpProxy = require('http-proxy'),
     url = require('url'),
     path = require('path'),
@@ -55,13 +56,14 @@ var pluginsInArgv = typeof argv.plugin === 'string' ? [argv.plugin] : argv.plugi
 
 var config = {};
 
-updateConfig();
-
 function updateConfig() {
+    /* jshint evil:true */
     // TODO: set up watches and check file changed. Return early if flag not checked.
 
     try {
-        config = JSON.parse(fs.readFileSync(argv.config), {encoding: 'utf-8'});
+        config = eval('(' +
+            fs.readFileSync(argv.config, {encoding: 'utf-8'}) +
+        ')');
     } catch(e) {
         console.log('Warning: Configuration file (%s) not found', argv.config)
     }
@@ -74,12 +76,13 @@ function updateConfig() {
         .map(require)
 }
 
+watch(argv.config, {recursive: false}, updateConfig);
+updateConfig();
+
 var proxy = new httpProxy.RoutingProxy()
 
 /* Listen to HTTP requests */
 http.createServer(function (req, res) {
-    updateConfig();
-
     /* Check if any plugin wishes to intercept and respond to the request */
     var didRespond = plugins.some(function (plugin) {
         return plugin.proxy(req, res, {
