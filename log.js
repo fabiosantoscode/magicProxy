@@ -14,6 +14,9 @@ function log(req, res, plugin) {
     var _end = res.end
     res.end = function () {
         console.log('%s\t%s\t(%s)', req.method, res.statusCode, req.url)
+        if (res.statusCode === 302 || res.statusCode === 301) {
+            console.log('\t=>:\t%s', res._headers['location'])
+        }
         _end.apply(this, [].slice.call(arguments))
     }
 }
