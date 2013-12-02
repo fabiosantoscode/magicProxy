@@ -93,6 +93,12 @@ http.createServer(function (req, res) {
     /* Else, proxy the request over to the server */
     if (!didRespond) {
         var parsed = url.parse(req.url)
+
+        // Protect Wordpress, Wikipedia and other sites from their naiveté
+        // in assuming that the URIs in the path field aren't absolute.
+        // http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.2
+        req.url = req.url.replace(/.*?\/\/.*?\//, '/');
+
         proxy.proxyRequest(req, res, {
             host: parsed.hostname,
             port: parsed.port || 80,
