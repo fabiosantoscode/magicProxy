@@ -21,9 +21,11 @@ You can also access websites only accessible to your computer (E.G. in your loca
       
 3. Run the proxy
 
-        node index.js
+        node index.js -c magicproxyrc.example
 
-4. Access your system's network configuration, and set up your proxy to `localhost`, port `8080`
+4. Access your system's network configuration, and set up your proxy to `localhost`, port `8080`. Check that everything works.
+
+5. Access http://www.example.com/, see the changes made by the proxy, and play around with magicproxyrc.example (the configurations are reloaded on the fly).
 
 
 ## Included plug-ins.

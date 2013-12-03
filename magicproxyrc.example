@@ -1,36 +1,42 @@
 {
-    "plugins": [
+
+    plugins: [
         "./log.js",
         "./replace.js",
         "./fakeDir.js"
     ],
-    "markup": [
+    markup: [
         {
-            "href": "http://example.com/",
-            "replace": {
-                "what": "h1,h2,h3,h4,h5",
-                "markup": "<h1>Hello from magicProxy!</h1>"
+            hrefRegExp: "http://(www\\.)?example.com/",
+            replace: {
+                what: "h1",
+                markup: "<h1>Hello from magicProxy!</h1>"
+            }
+        }, {
+            hrefRegExp: "http://(www\\.)?example.com/",
+            insert: {
+                markup: "<p><small>This paragraph was inserted through magicProxy. You can edit magicproxyrc.example (without restarting magicProxy) and see this change.</small></p>",
+                after: "h1"
             }
         }
     ],
-    "fakeDir": [
+    fakeDir: [
         {
             "url": "http://www.example.com/static/files/",
             "dir": "/path/to/my/version/of/those/files/",
             "contentType": "text/javascript"
         }
     ],
-    "replace": [
+    replace: [
         {
-            "replace": "http://www.example.com/js/main.js",
-            "with": "alert('Hey it seems like the proxy works!');",
-            "contentType": "text/javascript"
+            replace: "http://www.example.com/js/main.js",
+            with: "alert('Hey it seems like the proxy works!');",
+            contentType: "text/javascript"
         },
         {
-            "replaceRegExp": "^http://www.example.com/css/(.*?).min.css$",
-            "withFile": "/path/to/unminified/$1.css",
-            "contentType": "text/css"
+            replaceRegExp: "^http://www.example.com/css/(.*?).min.css$",
+            withFile: "/path/to/unminified/$1.css",
+            contentType: "text/css"
         }
     ]
 }
-
