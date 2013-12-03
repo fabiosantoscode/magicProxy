@@ -14,6 +14,7 @@ You can also access websites only accessible to your computer (E.G. in your loca
 1. Clone this repository
 
         git clone git@github.com:fabiosantoscode/magicProxy.git
+        cd magicProxy
 
 2. Npm install the dependencies
 
