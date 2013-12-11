@@ -36,7 +36,14 @@ function fakeDir(req, res, plugin) {
             }
             res.setHeader('Content-Type', fakeDir.contentType)
             fs.readFile(absPath, function (err, data) {
-                if (err) throw err
+                if (err) {
+                    res.setHeader('Content-Type', 'text/plain')
+                    res.statusCode = 404
+                    res.write('MagicProxy fakeDir IO error');
+                    console.error(err);
+                    res.write(err.toString());
+                    return res.end()
+                }
                 res.end(data)
             })
             return true
