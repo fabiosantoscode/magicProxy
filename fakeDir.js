@@ -27,7 +27,6 @@ function fakeDir(req, res, plugin) {
     var operations = plugin.config.fakeDir || []
 
     var fakeDir = findOp(req, operations)
-    console.log(fakeDir)
 
     if (!fakeDir) {
         return false;
