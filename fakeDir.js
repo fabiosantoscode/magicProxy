@@ -27,6 +27,7 @@ function fakeDir(req, res, plugin) {
     var operations = plugin.config.fakeDir || []
 
     var fakeDir = findOp(req, operations)
+    console.log(fakeDir)
 
     if (!fakeDir) {
         return false;
@@ -46,7 +47,7 @@ function fakeDir(req, res, plugin) {
 
 function findOp(req, operations) {
     for (var i = 0, len = operations.length; i < len; i++) {
-        if (req.url.indexOf(path.dirname(operations[i].url)) === 0) {
+        if (req.url.indexOf(operations[i].url) === 0) {
             return operations[i]
         }
     }
