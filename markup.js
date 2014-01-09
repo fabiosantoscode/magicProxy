@@ -43,7 +43,11 @@ function markup(req, res, plugin) {
     }
     res.write = function (d) { modifiedHTML += d || '' }
     res.end = function (d) {
-        modifiedHTML = doOps(relevantOps, modifiedHTML + (d || ''));
+        try {
+            modifiedHTML = doOps(relevantOps, modifiedHTML + (d || ''))
+        } catch (e) {
+            console.error('MagicProxy markup plugin: ', e);
+        }
         res.setHeader('Content-Type', 'text/html;charset=utf-8');
         res.setHeader('Content-Length', Buffer.byteLength(modifiedHTML, 'utf-8'));
         if (writeHeadArgs) {
@@ -66,7 +70,7 @@ function doOps(relevantOps, html) {
                 throw new Error('opt.insert is missing one of "after" options')
             }
         } else if (opt.remove) {
-            $(opt.remove).remove()
+            $(opt.remove.what || opt.remove).remove()
         } else if (opt.replace) {
             var $what = $(opt.replace.what);
             $what.after(getMarkup(opt.replace));
@@ -84,7 +88,7 @@ function getMarkup(opt) {
     } else if (opt.markupFile) {
         return fs.readFileSync(opt.markupFile)
     } else {
-        throw 'define a `markup` option'
+        throw 'define a `markup` or `markupFile` option'
     }
 }
 
