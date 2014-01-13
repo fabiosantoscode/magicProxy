@@ -9,6 +9,7 @@
  *
  */
 
+var ok = require('assert');
 var http = require('http'),
     https = require('https'),
     watch = require('node-watch'),
@@ -81,14 +82,37 @@ updateConfig();
 
 var proxy = new httpProxy.RoutingProxy()
 
+function tryRespond(req, res) {
+    return plugins.some(function (plugin) {
+        if (plugin.v2_proxy) {
+            // V2 API
+            var cfg = config[plugin.configName || plugin.name]
+            .filter(function (op) {
+                return (
+                    op.url && (req.url === op.url) ||
+                    typeof op.urlRegExp === 'string'    && (new RegExp(op.urlRegExp)).test(req.url) ||
+                    op.urlRegExp instanceof RegExp      && op.urlRegExp.test(req.url) ||
+                    typeof plugin.v2_test === 'function'&& plugin.v2_test());
+            })
+            .filter(function (op) {
+                return plugin.v2_proxy(req, res);
+            })
+            return plugin.v2_proxy(cfg);
+        } else if (plugin.proxy) {
+            // V1 API
+            return plugin.proxy(req, res, {
+                config: config
+            })
+        } else {
+            ok(false, 'plugin ' + (plugin.name || plugin) + ' does not have a "proxy_v2" or "proxy" function');
+        }
+    })
+}
+
 /* Listen to HTTP requests */
 http.createServer(function (req, res) {
     /* Check if any plugin wishes to intercept and respond to the request */
-    var didRespond = plugins.some(function (plugin) {
-        return plugin.proxy(req, res, {
-            config: config
-        })
-    })
+    var didRespond = tryRespond(req, res);
 
     /* Else, proxy the request over to the server */
     if (!didRespond) {
