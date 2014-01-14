@@ -8,12 +8,13 @@
   },
   "main": "index.js",
   "dependencies": {
-    "http-proxy": "*",
+    "http-proxy": "~0.10.4",
     "cheerio": "0.12.1",
     "optimist": "0.6.x",
     "underscore": "1.5.x",
     "node-watch": "~0.3.4",
-    "mime": "~1.2.11"
+    "mime": "~1.2.11",
+    "trumpet": "~1.6.3"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

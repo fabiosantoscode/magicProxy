@@ -9,10 +9,11 @@
  *
  */
 
-var ok = require('assert');
-var http = require('http'),
+var ok = require('assert'),
+    http = require('http'),
     https = require('https'),
     watch = require('node-watch'),
+    harmon = require('./vendor/harmon'),
     httpProxy = require('http-proxy'),
     url = require('url'),
     path = require('path'),
@@ -87,7 +88,7 @@ function urlMatch(op, req) {
         op.urlRegExp instanceof RegExp      &&  op.urlRegExp.test(req.url) || false)
 }
 
-function tryRespond(req, res) {
+function immediateResponse(req, res) {
     return plugins.some(function (plugin) {
         if (plugin.v2_proxy) {
             // V2 API
@@ -99,7 +100,6 @@ function tryRespond(req, res) {
                         return urlMatch(op, req);
                 })
                 .some(function (item) {
-                    console.log('calling v2_proxy on ' + JSON.stringify(item))
                     return plugin.v2_proxy(req, res, item);
                 });
             return plugin.v2_proxy(req, res);
@@ -109,7 +109,8 @@ function tryRespond(req, res) {
                 config: config
             })
         } else {
-            ok(false, 'plugin ' + (plugin.name || plugin) + ' does not have a "proxy_v2" or "proxy" function');
+            return;
+            ok(false, 'plugin ' + (plugin.name || JSON.stringify(plugin)) + ' does not have a "proxy_v2" or "proxy" function');
         }
     })
 }
@@ -117,23 +118,39 @@ function tryRespond(req, res) {
 var proxy = new httpProxy.RoutingProxy()
 
 /* Listen to HTTP requests */
-http.createServer(function (req, res) {
-    /* Check if any plugin wishes to intercept and respond to the request */
-    var didRespond = tryRespond(req, res);
-
-    /* Else, proxy the request over to the server */
-    if (!didRespond) {
-        var parsed = url.parse(req.url)
-
-        // Protect Wordpress, Wikipedia and other sites from their naiveté
-        // in assuming that the URIs in the path field aren't absolute.
-        // http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.2
-        req.url = req.url.replace(/.*?\/\/.*?\//, '/');
-
-        proxy.proxyRequest(req, res, {
-            host: parsed.hostname,
-            port: parsed.port || 80,
-        })
+httpProxy.createServer(function staticPlugins(req, res, next) {
+    /* Check if any plugin wishes to intercept and respond to the request immediately */
+    if (!immediateResponse(req, res)) {
+        return next()
     }
+}, function harmonPlugins(req, res, next) {
+    var harmonActions = plugins
+        .map(function (plugin) {
+            return plugin.harmon &&
+                plugin.harmon(req, res, {config: config})
+        })
+
+    // Remove falsy values and empty arrays, making it
+    // possible to return an array of actions, and letting
+    // plugins cancel
+    harmonActions = _.flatten(_.compact(harmonActions), true /* shallow */)
+
+    if (harmonActions.length) {
+        return harmon(null, harmonActions)(req, res, next)
+    } else {
+        return next()
+    }
+}, function (req, res, next) {
+    var parsed = url.parse(req.url)
+
+    // Protect Wordpress, Wikipedia and other sites from their naiveté
+    // in assuming that the URIs in the path field aren't absolute.
+    // http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.2
+    req.url = req.url.replace(/.*?\/\/.*?\//, '/');
+
+    proxy.proxyRequest(req, res, {
+        host: parsed.hostname,
+        port: parsed.port || 80,
+    })
 }).listen(argv.port || config.port || 8080)
 
