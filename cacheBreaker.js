@@ -3,63 +3,59 @@
  */
 
 module.exports = {
-    proxy: cacheBreaker
+    harmon: harmonCacheBreaker
 }
 
-var cheerio = require('cheerio')
-/*         :(               */
-/*        :(              */
-/*       :(             */
 var url = require('url')
 
 /* small breakers are a concern on IE where the URL length is limited. */
-var breakerParam = 'mp_brkr'
-var getBreakerVal = function () { return Math.random().toString(16).substr(2, 8) }
+var breakerParam = '__brkr'
+var getBreakerVal = function () { return Math.random().toString(16).substr(2, 6) }
 
-function cacheBreaker(req, res, plugin) {
-    /* these lines need to be in the plugin system:    vvvvv */
+var elementsToBreak = 'script,link,img,iframe';
+var attrsToBreak = ['href', 'src'];
+
+function harmonCacheBreaker(req, res, plugin) {
     var operations = plugin.config.cacheBreaker || [];
 
-    var relevantOps = operations.filter(function (op) {
-        var href = url.parse(req.url).href
-        return href === op.href || (op.hrefRegExp && (new RegExp(op.hrefRegExp)).test(href))
-    })
-
-    if (relevantOps.length === 0) { return }
+    return operations
+    /* these lines need to be in the plugin system:    vvvvv */
+        .filter(function (op) {
+            var href = url.parse(req.url).href
+            return href === op.href || (op.hrefRegExp && (new RegExp(op.hrefRegExp)).test(href))
+        })
     /* ^^^^^       let's crush them and stuff          ^^^^^ */
+        .map(function (op) {
+            return {
+                query: op.query || op.selector || elementsToBreak,
+                func: function (elem) {
+                    attrsToBreak.forEach(function (attrName) {
+                        changeOneAttribute(elem, attrName);
+                    })
+                }
+            }
+        });
+}
 
-    var modifiedHTML = ''
-    var res_end = res.end
-    var res_write = res.write
-    res.write = function (d) { modifiedHTML += d || '' }
-    res.end = function (d) {
-        modifiedHTML += d || ''
-        res_write.call(res, putBreakers(modifiedHTML))
-        res_end.call(res, '')
+function changeOneAttribute(elem, attrName) {
+    if (elem.getAttribute) {  // trumpet latest
+        elem.getAttribute(attrName, function (attr) {
+            if (!attr) return;
+            elem.setAttribute(breakerParam, addBreaker(attr));
+        });
+    } else {  // trumpet old
+        if (attrName in elem.attributes) {
+            elem.attributes[attrName] = addBreaker(elem.attributes[attrName]);
+        }
+
+        elem.update(function (html) { console.log(html); return html }, elem.attributes)
     }
 }
 
-var breakers = {
-    script: 'src',
-    link: 'href',
-    img: 'src',
-}
-
-function putBreakers(html) {
-    var $ = cheerio.load(html)
-    var breakerVal = getBreakerVal()
-
-    Object.keys(breakers).forEach(function (selector) {
-        var attrName = breakers[selector]  // see dat object above
-        var resourceUrl = $(selector).attr(attrName)
-        if (!resourceUrl) { return; }
-        resourceUrl = url.parse(resourceUrl, true)
-        
-        resourceUrl.query[breakerParam] = breakerVal
-
-        $(selector).attr(attrName, url.format(resourceUrl))
-    })
-
-    return $.html()
+function addBreaker(urlString) {
+    var resourceUrl = url.parse(urlString, true)
+    resourceUrl.query[breakerParam] = getBreakerVal()
+    delete resourceUrl.search
+    return url.format(resourceUrl);
 }
 

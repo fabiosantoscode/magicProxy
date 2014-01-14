@@ -82,27 +82,43 @@ updateConfig();
 var proxy = new httpProxy.RoutingProxy()
 
 /* Listen to HTTP requests */
-http.createServer(function (req, res) {
-    /* Check if any plugin wishes to intercept and respond to the request */
+httpProxy.createServer(function staticPlugins(req, res, next) {
     var didRespond = plugins.some(function (plugin) {
-        return plugin.proxy(req, res, {
+        return plugin.proxy && plugin.proxy(req, res, {
             config: config
         })
     })
-
-    /* Else, proxy the request over to the server */
     if (!didRespond) {
-        var parsed = url.parse(req.url)
-
-        // Protect Wordpress, Wikipedia and other sites from their naiveté
-        // in assuming that the URIs in the path field aren't absolute.
-        // http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.2
-        req.url = req.url.replace(/.*?\/\/.*?\//, '/');
-
-        proxy.proxyRequest(req, res, {
-            host: parsed.hostname,
-            port: parsed.port || 80,
-        })
+        return next()
     }
+}, function harmonPlugins(req, res, next) {
+    var harmonActions = plugins
+        .map(function (plugin) {
+            return plugin.harmon &&
+                plugin.harmon(req, res, {config: config})
+        })
+
+    // Remove falsy values and empty arrays, making it
+    // possible to return an array of actions, and letting
+    // plugins cancel
+    harmonActions = _.flatten(_.compact(harmonActions), true /* shallow */)
+
+    if (harmonActions.length) {
+        return require('harmon')(null, harmonActions)(req, res, next)
+    } else {
+        return next()
+    }
+}, function (req, res, next) {
+    var parsed = url.parse(req.url)
+
+    // Protect Wordpress, Wikipedia and other sites from their naiveté
+    // in assuming that the URIs in the path field aren't absolute.
+    // http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.1.2
+    req.url = req.url.replace(/.*?\/\/.*?\//, '/');
+
+    proxy.proxyRequest(req, res, {
+        host: parsed.hostname,
+        port: parsed.port || 80,
+    })
 }).listen(argv.port || config.port || 8080)
 
