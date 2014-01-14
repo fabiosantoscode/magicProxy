@@ -130,7 +130,7 @@ function harmonResponse(req, res) {
     // Remove falsy values and empty arrays, making it
     // possible to return an array of actions, and letting
     // plugins cancel
-    return _.flatten(_.compact(result));
+    return _.compact(_.flatten(result));
 }
 
 var proxy = new httpProxy.RoutingProxy()
