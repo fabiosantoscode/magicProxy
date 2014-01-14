@@ -12,7 +12,7 @@ var url = require('url')
 var breakerParam = '__brkr'
 var getBreakerVal = function () { return Math.random().toString(16).substr(2, 6) }
 
-var elementsToBreak = 'script,link,img,iframe';
+var elementsToBreak = 'img,script,link,iframe';
 var attrsToBreak = ['href', 'src'];
 
 function harmonCacheBreaker(req, res, plugin) {
@@ -40,8 +40,8 @@ function harmonCacheBreaker(req, res, plugin) {
 function changeOneAttribute(elem, attrName) {
     if (elem.getAttribute) {  // trumpet latest
         elem.getAttribute(attrName, function (attr) {
-            if (!attr) return;
-            elem.setAttribute(breakerParam, addBreaker(attr));
+            if (!attr) return '';
+            elem.setAttribute(attrName, addBreaker(attr));
         });
     } else {  // trumpet old
         if (attrName in elem.attributes) {
