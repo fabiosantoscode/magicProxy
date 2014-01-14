@@ -81,7 +81,10 @@ function updateConfig() {
 watch(argv.config, {recursive: false}, updateConfig);
 updateConfig();
 
-function urlMatch(op, req) {
+function pluginAppliesHere(plugin, op, req) {
+    if (plugin.filter) {
+        return plugin.filter(op, req);
+    }
     return (
         op.url                              && (req.url === op.url) ||
         typeof op.urlRegExp === 'string'    &&  (new RegExp(op.urlRegExp)).test(req.url) ||
@@ -94,10 +97,7 @@ function immediateResponse(req, res) {
             // V2 API
             return config[plugin.configName || plugin.name]
                 .filter(function (op) {
-                    if (plugin.v2_filter)
-                        return plugin.v2_filter(op)
-                    else
-                        return urlMatch(op, req);
+                    return pluginAppliesHere(plugin, op, req);
                 })
                 .some(function (item) {
                     return plugin.v2_proxy(req, res, item);
@@ -115,6 +115,24 @@ function immediateResponse(req, res) {
     })
 }
 
+/* [todo] "streamingResponse"? */
+function harmonResponse(req, res) {
+    var result = plugins
+        .map(function (plugin) {
+            if (!plugin.harmon) return null;
+            return config[plugin.configName || plugin.name].map(function (op) {
+                if (pluginAppliesHere(plugin, op, req)) {
+                    return plugin.harmon(req, res, op);
+                }
+            })
+        })
+
+    // Remove falsy values and empty arrays, making it
+    // possible to return an array of actions, and letting
+    // plugins cancel
+    return _.flatten(_.compact(result));
+}
+
 var proxy = new httpProxy.RoutingProxy()
 
 /* Listen to HTTP requests */
@@ -124,16 +142,7 @@ httpProxy.createServer(function staticPlugins(req, res, next) {
         return next()
     }
 }, function harmonPlugins(req, res, next) {
-    var harmonActions = plugins
-        .map(function (plugin) {
-            return plugin.harmon &&
-                plugin.harmon(req, res, {config: config})
-        })
-
-    // Remove falsy values and empty arrays, making it
-    // possible to return an array of actions, and letting
-    // plugins cancel
-    harmonActions = _.flatten(_.compact(harmonActions), true /* shallow */)
+    var harmonActions = harmonResponse(req, res);
 
     if (harmonActions.length) {
         return harmon(null, harmonActions)(req, res, next)
