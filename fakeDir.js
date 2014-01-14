@@ -1,5 +1,5 @@
 /*
- * Fakes a server directory with static files locally, but serves files locally.
+ * Fakes a server directory with static files, but serves files from a local dir.
  */
 
 module.exports = {
@@ -37,6 +37,15 @@ function fakeDir(req, res, plugin) {
 
     if (!fakeDir.contentType) {
         fakeDir.contentType = mime.lookup(absPath) || 'text/plain';
+        if (fakeDir.contentType === 'application/javascript') {
+            fakeDir.contentType = 'text/javascript';
+        }
+    }
+    if (absPath.match(/\.js$/)) {
+        fakeDir.contentType = 'text/javascript';
+    }
+    if (absPath.match(/\.css$/)) {
+        fakeDir.contentType = 'text/css';
     }
 
     respondWith(fakeDir, res, absPath);
