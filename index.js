@@ -12,6 +12,7 @@
 var http = require('http'),
     https = require('https'),
     watch = require('node-watch'),
+    harmon = require('./vendor/harmon'),
     httpProxy = require('http-proxy'),
     url = require('url'),
     path = require('path'),
@@ -104,7 +105,7 @@ httpProxy.createServer(function staticPlugins(req, res, next) {
     harmonActions = _.flatten(_.compact(harmonActions), true /* shallow */)
 
     if (harmonActions.length) {
-        return require('harmon')(null, harmonActions)(req, res, next)
+        return harmon(null, harmonActions)(req, res, next)
     } else {
         return next()
     }

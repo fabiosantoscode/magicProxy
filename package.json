@@ -14,7 +14,7 @@
     "underscore": "1.5.x",
     "node-watch": "~0.3.4",
     "mime": "~1.2.11",
-    "harmon": "~0.1.0"
+    "trumpet": "~1.6.3"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
