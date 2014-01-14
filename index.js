@@ -80,24 +80,29 @@ function updateConfig() {
 watch(argv.config, {recursive: false}, updateConfig);
 updateConfig();
 
-var proxy = new httpProxy.RoutingProxy()
+function urlMatch(op, req) {
+    return (
+        op.url                              && (req.url === op.url) ||
+        typeof op.urlRegExp === 'string'    &&  (new RegExp(op.urlRegExp)).test(req.url) ||
+        op.urlRegExp instanceof RegExp      &&  op.urlRegExp.test(req.url) || false)
+}
 
 function tryRespond(req, res) {
     return plugins.some(function (plugin) {
         if (plugin.v2_proxy) {
             // V2 API
-            var cfg = config[plugin.configName || plugin.name]
-            .filter(function (op) {
-                return (
-                    op.url && (req.url === op.url) ||
-                    typeof op.urlRegExp === 'string'    && (new RegExp(op.urlRegExp)).test(req.url) ||
-                    op.urlRegExp instanceof RegExp      && op.urlRegExp.test(req.url) ||
-                    typeof plugin.v2_test === 'function'&& plugin.v2_test());
-            })
-            .filter(function (op) {
-                return plugin.v2_proxy(req, res);
-            })
-            return plugin.v2_proxy(cfg);
+            return config[plugin.configName || plugin.name]
+                .filter(function (op) {
+                    if (plugin.v2_filter)
+                        return plugin.v2_filter(op)
+                    else
+                        return urlMatch(op, req);
+                })
+                .some(function (item) {
+                    console.log('calling v2_proxy on ' + JSON.stringify(item))
+                    return plugin.v2_proxy(req, res, item);
+                });
+            return plugin.v2_proxy(req, res);
         } else if (plugin.proxy) {
             // V1 API
             return plugin.proxy(req, res, {
@@ -108,6 +113,8 @@ function tryRespond(req, res) {
         }
     })
 }
+
+var proxy = new httpProxy.RoutingProxy()
 
 /* Listen to HTTP requests */
 http.createServer(function (req, res) {
