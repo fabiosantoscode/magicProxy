@@ -15,7 +15,7 @@ var fs = require('fs'),
  * replace: [
  *     {
  *         replace: 'http://what.to/replace',  // You can also use replaceRegExp
- *         withFile: '/path/to/replacement.js',  // You can also use with, a string containing the file contents.
+ *         withFile: '/path/to/replacement.js',  // You can also use the "with" option, a string containing the file contents.
  *         contentType: 'content/type',  // dafaults to text/plain
  *     },
  * ]
