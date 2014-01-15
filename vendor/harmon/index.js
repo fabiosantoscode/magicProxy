@@ -5,8 +5,7 @@ module.exports = function harmon(reqselectors, resselectors) {
 	var reqselectors = reqselectors || [];
 	var resselectors = resselectors || [];
 
-	return function harmon(req, res, next)
-	{
+	return function harmon(req, res, next) {
 		if (reqselectors.length) {
 			var reqtr = trumpet();
 			for(var i = 0; i < reqselectors.length; i++){
@@ -27,6 +26,7 @@ module.exports = function harmon(reqselectors, resselectors) {
 
 			var _write = res.write;
 			var _end = res.end;
+            var _writeHead = res.writeHead
 
 			res.write = function (data) {
 				tr.write(data);
@@ -38,9 +38,15 @@ module.exports = function harmon(reqselectors, resselectors) {
 				_end.call(res);
 			};
 
-			tr.on('data', function (buf) { 
+			tr.on('data', function (buf) {
 				_write.call(res, buf);
 			});
+
+            res.writeHead = function (code, headers) {
+                res.removeHeader('Content-Length');
+                if (headers) { delete headers['content-length']; }
+                _writeHead.apply(res, arguments);
+            };
 		}
 
 		next();
