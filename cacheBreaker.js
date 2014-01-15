@@ -17,14 +17,18 @@ var elementsToBreak = 'img,script,link,iframe';
 var attrsToBreak = ['href', 'src'];
 
 function harmonCacheBreaker(req, res, op) {
-    return {
-        query: op.query || op.selector || elementsToBreak,
-        func: function (elem) {
-            attrsToBreak.forEach(function (attrName) {
-                changeOneAttribute(elem, attrName);
-            })
+    var elsToBreak = (op.query || op.selector || elementsToBreak).split(/,/g);
+    // [todo] this breaks if a selector has a comma not used to separate subselectors
+    return elsToBreak.map(function (toBreak) {
+        return {
+            query: toBreak,
+            func: function (elem) {
+                attrsToBreak.forEach(function (attrName) {
+                    changeOneAttribute(elem, attrName);
+                })
+            }
         }
-    }
+    });
 }
 
 function changeOneAttribute(elem, attrName) {
