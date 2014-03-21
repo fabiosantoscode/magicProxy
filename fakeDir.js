@@ -3,7 +3,7 @@
  */
 
 module.exports = {
-    proxy: fakeDir
+    proxy: fakeDirProxy
 }
 
 var fs = require('fs'),
@@ -22,7 +22,7 @@ var fs = require('fs'),
  * ]
  */
 
-function fakeDir(req, res, plugin) {
+function fakeDirProxy(req, res, plugin) {
     var remoteUrl = url.parse(req.url)
     var operations = plugin.config.fakeDir || []
 
@@ -32,7 +32,7 @@ function fakeDir(req, res, plugin) {
         return false;
     }
 
-    var relativePath = path.relative(fakeDir.url, req.url)
+    var relativePath = path.relative(fakeDir.url, req.url.replace(/\??.*?/, ''))
     var absPath = path.join(fakeDir.dir, relativePath)
 
     if (!fakeDir.contentType) {
