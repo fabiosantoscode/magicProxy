@@ -47,6 +47,12 @@ function fakeDirProxy(req, res, plugin) {
     if (absPath.match(/\.css$/)) {
         fakeDir.contentType = 'text/css';
     }
+    if (absPath.match(/\.html$/)) {
+        fakeDir.contentType = 'text/html';
+    }
+    if (absPath.match(/\.txt$/)) {
+        fakeDir.contentType = 'text/plain';
+    }
 
     respondWith(fakeDir, res, absPath);
 
