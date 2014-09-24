@@ -47,6 +47,7 @@ var argv = require('optimist')
 var defaultPlugins = [
     './replace.js',
     './fakeDir.js',
+    './ui.js',
     './empty.js',
     './markup.js',
     './cacheBreaker.js',
