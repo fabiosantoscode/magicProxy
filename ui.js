@@ -1,13 +1,18 @@
 
-
-module.exports = {
-    proxy: uiProxy
-}
-
 var fs = require('fs')
 var url = require('url')
 var express = require('express')
 
+module.exports = {
+    proxy: uiProxy,
+    tabs: [
+        {
+            label: 'status',
+            link: '/status',
+        }
+    ],
+    router: new express.Router()
+}
 
 function uiProxy(req, res, plugin) {
     var remoteUrl = url.parse(req.url)
@@ -16,18 +21,30 @@ function uiProxy(req, res, plugin) {
         return false;
     }
 
-    respond(req, res)
+    module.exports.router.middleware(req, res)
 
     return true;
 }
 
-function respond(req, res) {
-    router.middleware(req, res)
-}
+module.exports.router.get('/', function (req, res) {
+    res.write(fs.readFileSync('ui.html'))
 
-var router = new express.Router()
+    res.write(
+        '<nav id="tabs"><ul><li>' +
+        module.exports.tabs.map(function (tab) {
+            var ret =
+                '<a href="' + ('/' + tab.label || tab.link) + '" ' +
+                'target="iframe"' +
+                '>' +
+                tab.label + '</a>';
+            return ret
+        }).join('</li><li>') +
+        '</li></ul></nav>')
 
-router.get('/', function (req, res) {
-    res.end(fs.readFileSync('ui.html'))
+    res.end('<iframe name="iframe"></iframe>')
+})
+
+module.exports.router.get('/status', function (req, res) {
+    res.end('<img src="http://38.media.tumblr.com/dc2acffbea837dc5277bb1b469aafbb7/tumblr_n7u8czdwFI1qzs5cqo1_500.gif">')
 })
 
