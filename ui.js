@@ -29,8 +29,7 @@ function uiProxy(req, res, plugin) {
 module.exports.router.get('/', function (req, res) {
     res.write(fs.readFileSync('ui.html'))
 
-    res.write(
-        '<nav id="tabs"><ul><li>' +
+    res.write('<nav id="tabs">' +
         module.exports.tabs.map(function (tab) {
             var ret =
                 '<a href="' + ('/' + tab.label || tab.link) + '" ' +
@@ -38,10 +37,10 @@ module.exports.router.get('/', function (req, res) {
                 '>' +
                 tab.label + '</a>';
             return ret
-        }).join('</li><li>') +
-        '</li></ul></nav>')
+        }).join('') +
+        '</nav>')
 
-    res.end('<iframe name="iframe"></iframe>')
+    res.end('<iframe name="iframe" src="/status"></iframe>')
 })
 
 module.exports.router.get('/status', function (req, res) {
