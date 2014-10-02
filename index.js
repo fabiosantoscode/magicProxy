@@ -138,7 +138,7 @@ function harmonResponse(req, res) {
 var proxy = new httpProxy.RoutingProxy()
 
 /* Listen to HTTP requests */
-httpProxy.createServer(function staticPlugins(req, res, next) {
+var proxyServer = httpProxy.createServer(function staticPlugins(req, res, next) {
     /* Check if any plugin wishes to intercept and respond to the request immediately */
     if (!immediateResponse(req, res)) {
         return next()
@@ -180,3 +180,8 @@ proxy.on('proxyError', function (err, req, res) {
     catch (ex) { console.error("res.end error: %s", ex.message) }
 })
 
+// Testing hooks
+module.exports = {
+    plugins: plugins,
+    proxyServer: proxyServer,
+}
