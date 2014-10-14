@@ -70,6 +70,7 @@ function findOp(req, operations) {
 
 function respondWith(fakeDir, res, absPath) {
     res.setHeader('Content-Type', fakeDir.contentType)
+    res.setHeader('Access-Control-Allow-Origin', '*')
     fs.readFile(absPath, function (err, data) {
         if (err) {
             // Error could be that the user is looking at a dir.
