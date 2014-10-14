@@ -21,12 +21,16 @@ function uiProxy(req, res, plugin) {
         return false;
     }
 
-    module.exports.router.middleware(req, res)
+    module.exports.router.middleware(req, res, function fakeNext(err, req, res){
+        res.end('404! ' + (err || ''))
+        if (err) console.error(err)
+    })
 
     return true;
 }
 
 module.exports.router.get('/', function (req, res) {
+    res.setHeader('content-type', 'text/html;charset=utf-8')
     res.write(fs.readFileSync('ui.html'))
 
     res.write('<nav id="tabs">' +
@@ -44,6 +48,7 @@ module.exports.router.get('/', function (req, res) {
 })
 
 module.exports.router.get('/status', function (req, res) {
+    res.setHeader('content-type', 'text/html;charset=utf-8')
     res.end('<img src="http://38.media.tumblr.com/dc2acffbea837dc5277bb1b469aafbb7/tumblr_n7u8czdwFI1qzs5cqo1_500.gif">')
 })
 
