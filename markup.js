@@ -32,13 +32,15 @@ function markup(req, res, plugin) {
     var headers = {};
     res.writeHead = function (x, heads1, heads2/*...*/) {
         writeHeadArgs = [].slice.call(arguments)
+
         headers =
             (heads1 && typeof heads1 === 'object') ? heads1 :
             (heads2 && typeof heads1 === 'object') ? heads2 : null;
         if (headers) {
             // going to override these
             delete headers['Content-Type'];
-            delete headers['Content-Length']
+            delete headers['Content-Length'];
+            delete headers['Accept-Encoding'];
         }
     }
     res.write = function (d) { modifiedHTML += d || '' }
@@ -48,8 +50,8 @@ function markup(req, res, plugin) {
         } catch (e) {
             console.error('MagicProxy markup plugin: ', e);
         }
-        res.setHeader('Content-Type', 'text/html;charset=utf-8');
-        res.setHeader('Content-Length', Buffer.byteLength(modifiedHTML, 'utf-8'));
+        //res.setHeader('Content-Type', 'text/html;charset=utf-8');
+        // res.setHeader('Content-Length', Buffer.byteLength(modifiedHTML, 'utf-8'));
         if (writeHeadArgs) {
             res_writeHead.call(res, writeHeadArgs);
         }
