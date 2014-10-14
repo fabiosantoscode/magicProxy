@@ -164,3 +164,18 @@ httpProxy.createServer(function staticPlugins(req, res, next) {
     })
 }).listen(argv.port || config.port || 8080)
 
+proxy.on('proxyError', function (err, req, res) {
+    res.writeHead(500, { 'Content-Type': 'text/plain' });
+
+    if (req.method !== 'HEAD') {
+        res.write('An error has occurred: ' + JSON.stringify(err, null, 4));
+
+        res.write('\n')
+        res.write('\n')
+        res.write('So yeah you can\'t go to your dear URL, ' + JSON.stringify(req.url) + ' lol')
+    }
+
+    try { res.end() }
+    catch (ex) { console.error("res.end error: %s", ex.message) }
+})
+
