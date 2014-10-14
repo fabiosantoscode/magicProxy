@@ -15,7 +15,8 @@
     "mime": "~1.2.11",
     "node-watch": "~0.3.4",
     "optimist": "0.6.x",
-    "underscore": "1.5.x"
+    "underscore": "1.5.x",
+    "weinre": "^2.0.0-pre-HZO3BMNG"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
