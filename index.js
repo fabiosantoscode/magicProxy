@@ -48,6 +48,7 @@ var defaultPlugins = [
     './replace.js',
     './fakeDir.js',
     './ui.js',
+    './weinre.js',
     './empty.js',
     './markup.js',
     './cacheBreaker.js',
