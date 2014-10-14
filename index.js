@@ -121,7 +121,7 @@ function harmonResponse(req, res) {
     var result = plugins
         .map(function (plugin) {
             if (!plugin.harmon) return null;
-            return config[plugin.configName || plugin.name].map(function (op) {
+            return (config[plugin.configName || plugin.name] || [null]).map(function (op) {
                 if (pluginAppliesHere(plugin, op, req)) {
                     return plugin.harmon(req, res, op);
                 }
