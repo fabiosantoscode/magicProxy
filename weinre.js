@@ -8,6 +8,7 @@ module.exports = {
     proxy: weinreInjector
 }
 
+var port = 49369
 var weinreRunning = false
 
 ui.tabs.push({
@@ -19,7 +20,7 @@ function startWeinreForm(req, res) {
     res.setHeader('content-type', 'text/html;charset=utf-8')
     res.write('<form method="post" action="/weinres">')
     res.write('    <button type="submit">')
-    res.write('         Start weinre server on localhost:8081 (access it on weinre.local, cause magicproxy will proxy it.)')
+    res.write('         Start weinre server on 0.0.0.0:' + port + ' (access it on weinre.local, cause magicproxy will proxy it.)')
     res.write('    </button>')
     res.write('</form>')
     res.end()
@@ -38,11 +39,11 @@ ui.router.get('/weinres', function (req, res) {
 ui.router.post('/weinres', function (req, res) {
     weinre.run({
         boundHost: '-all-',
-        httpPort: 8081,
+        httpPort: port,
         verbose: true,
         debug: true, 
-        readTimeout: 10000,
-        deathTimeout: 10000
+        readTimeout: 120,
+        deathTimeout: 120
     })
 
     weinreRunning = true
@@ -55,7 +56,7 @@ function weinreInjector(req, res, plugin) {
     var remoteUrl = url.parse(req.url)
 
     if (remoteUrl.host === 'weinre.local') {
-        req.url = req.url.replace(/weinre.local/, 'localhost:8081')
+        req.url = req.url.replace(/weinre.local/, 'localhost:' + port)
         return false;
     }
 
