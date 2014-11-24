@@ -87,6 +87,7 @@ function pluginAppliesHere(plugin, op, req) {
     if (plugin.filter) {
         return plugin.filter(op, req);
     }
+    if (!op) { return false; }
     return (
         op.url                              && (req.url === op.url) ||
         typeof op.urlRegExp === 'string'    &&  (new RegExp(op.urlRegExp)).test(req.url) ||
